@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="output.mif" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="code.s">

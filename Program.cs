@@ -24,6 +24,12 @@ namespace assembler
 
                 string[] currentLineParts = currentLine.Split(' ');
 
+
+                if(currentLineParts[0] == "noop")
+                {
+                    memoryOutput.Add(memoryOutput.Count + " : 000000; % " + line + " %");
+                }
+
                 if(currentLineParts[0] == "add" || currentLineParts[0] == "sub" || currentLineParts[0] == "and" || currentLineParts[0] == "or" || currentLineParts[0] == "xor" || currentLineParts[0] == "cmp" || currentLineParts[0] == "jr") // R-type
                 {
 
@@ -104,19 +110,103 @@ namespace assembler
 
                 }
 
+
+
+
+
+
+
+
+
+
                 if(currentLineParts[0] == "addi" || currentLineParts[0] == "lw" || currentLineParts[0] == "sw") // D-type
                 {
+                    if (currentLineParts[0] == "addi")
+                    {
+                        string prefix = "011000000";
+                        string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                        string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                        string Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("#", ""), 10), 2).PadLeft(7, '0');
 
+                        string instruction = Convert.ToString(Convert.ToInt32(prefix + Immediate + RegS + RegT, 2), 16).PadLeft(6, '0');
+                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                    }
+
+                    if (currentLineParts[0] == "lw")
+                    {
+                        string prefix = "010000000";
+                        string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Split('(', ')')[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                        string Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[2].Split('(')[0], 10), 2).PadLeft(7, '0');
+                        string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
+
+                        string instruction = Convert.ToString(Convert.ToInt32(prefix + Immediate + RegS + RegT, 2), 16).PadLeft(6, '0');
+                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                    }
+
+                    if (currentLineParts[0] == "sw")
+                    {
+                        string prefix = "010100000";
+                        string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Split('(', ')')[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                        string Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[2].Split('(')[0], 10), 2).PadLeft(7, '0');
+                        string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
+
+                        string instruction = Convert.ToString(Convert.ToInt32(prefix + Immediate + RegS + RegT, 2), 16).PadLeft(6, '0');
+                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                    }
 
                 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 if (currentLineParts[0] == "b" || currentLineParts[0] == "bal") // B-type
                 {
+
+                    if (currentLineParts[0] == "b")
+                    {
+                        string prefix = "10000000";
+                        string label = Convert.ToString(Convert.ToInt32(currentLineParts[1], 10), 2).PadLeft(16, '0');
+
+                        string instruction = Convert.ToString(Convert.ToInt32(prefix + label, 2), 16).PadLeft(6, '0');
+                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                    }
+
+                    if (currentLineParts[0] == "bal")
+                    {
+                        string prefix = "10010000";
+                        string label = Convert.ToString(Convert.ToInt32(currentLineParts[1], 10), 2).PadLeft(16, '0');
+
+                        string instruction = Convert.ToString(Convert.ToInt32(prefix + label, 2), 16).PadLeft(6, '0');
+                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                    }
 
                 }
 
                 //Console.WriteLine(currentLine);
             }
+
+
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"..\..\output.mif"))
+            {
+                foreach (var line in memoryOutput)
+                {
+                    file.WriteLine(line);
+
+                }
+            }
+
+            Console.WriteLine("Done");
 
             Console.ReadKey();
 
