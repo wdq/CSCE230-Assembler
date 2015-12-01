@@ -9,6 +9,72 @@ namespace assembler
 {
     class Program
     {
+
+        static string conditionToCond(string condition)
+        {
+            if(condition == "nv")
+            {
+                return "0001";
+            } else if(condition == "eq")
+            {
+                return "0010";
+            }
+            else if (condition == "ne")
+            {
+                return "0011";
+            }
+            else if (condition == "vs")
+            {
+                return "0100";
+            }
+            else if (condition == "vc")
+            {
+                return "0101";
+            }
+            else if (condition == "mi")
+            {
+                return "0110";
+            }
+            else if (condition == "pl")
+            {
+                return "0111";
+            }
+            else if (condition == "cs")
+            {
+                return "1000";
+            }
+            else if (condition == "cc")
+            {
+                return "1001";
+            }
+            else if (condition == "hi")
+            {
+                return "1010";
+            }
+            else if (condition == "ls")
+            {
+                return "1011";
+            }
+            else if (condition == "gt")
+            {
+                return "1100";
+            }
+            else if (condition == "lt")
+            {
+                return "1101";
+            }
+            else if (condition == "ge")
+            {
+                return "1110";
+            }
+            else if (condition == "le")
+            {
+                return "1111";
+            }
+
+            return "0000";
+        }
+
         static void Main(string[] args)
         {
 
@@ -30,17 +96,27 @@ namespace assembler
                 string[] currentLineParts = currentLine.Split(' ');
 
 
-                if(currentLineParts[0] == "noop")
+                if(currentLineParts[0].Contains("noop"))
                 {
                     memoryOutput.Add(memoryOutput.Count - 5 + " : 000000; % " + line + " %");
                 }
 
-                if(currentLineParts[0] == "add" || currentLineParts[0] == "sub" || currentLineParts[0] == "and" || currentLineParts[0] == "or" || currentLineParts[0] == "xor" || currentLineParts[0] == "cmp" || currentLineParts[0] == "jr") // R-type
+                if((currentLineParts[0].Contains("add") && !currentLineParts[0].Contains("addi")) || currentLineParts[0].Contains("sub") || currentLineParts[0] == "and" || currentLineParts[0].Contains("or") || currentLineParts[0].Contains("xor") || currentLineParts[0].Contains("cmp") || currentLineParts[0].Contains("jr")) // R-type
                 {
 
-                    if(currentLineParts[0] == "add")
+                    if(currentLineParts[0].Contains("add"))
                     {
-                        string prefix = "000000000100";
+                        string opcode = "0000";
+                        string cond = "0000";
+                        if(currentLineParts[0] != "add")
+                        {
+                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
+                            cond = conditionToCond(condition);
+                        }
+                        string s = "0";
+                        string opx = "100";
+                        string prefix = opcode + cond + s + opx;
+
                         string RegD = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
                         string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
@@ -49,9 +125,19 @@ namespace assembler
                         memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
-                    if (currentLineParts[0] == "sub")
+                    if (currentLineParts[0].Contains("sub"))
                     {
-                        string prefix = "000000000011";
+                        string opcode = "0000";
+                        string cond = "0000";
+                        if (currentLineParts[0] != "sub")
+                        {
+                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
+                            cond = conditionToCond(condition);
+                        }
+                        string s = "0";
+                        string opx = "011";
+                        string prefix = opcode + cond + s + opx;
+
                         string RegD = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
                         string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
@@ -60,9 +146,19 @@ namespace assembler
                         memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
-                    if (currentLineParts[0] == "and")
+                    if (currentLineParts[0].Contains("and"))
                     {
-                        string prefix = "000000000111";
+                        string opcode = "0000";
+                        string cond = "0000";
+                        if (currentLineParts[0] != "and")
+                        {
+                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
+                            cond = conditionToCond(condition);
+                        }
+                        string s = "0";
+                        string opx = "111";
+                        string prefix = opcode + cond + s + opx;
+
                         string RegD = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
                         string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
@@ -71,9 +167,19 @@ namespace assembler
                         memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
-                    if (currentLineParts[0] == "or")
+                    if (currentLineParts[0].Contains("or"))
                     {
-                        string prefix = "000000000110";
+                        string opcode = "0000";
+                        string cond = "0000";
+                        if (currentLineParts[0] != "or")
+                        {
+                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
+                            cond = conditionToCond(condition);
+                        }
+                        string s = "0";
+                        string opx = "110";
+                        string prefix = opcode + cond + s + opx;
+
                         string RegD = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
                         string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
@@ -82,9 +188,19 @@ namespace assembler
                         memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
-                    if (currentLineParts[0] == "xor")
+                    if (currentLineParts[0].Contains("xor"))
                     {
-                        string prefix = "000000000101";
+                        string opcode = "0000";
+                        string cond = "0000";
+                        if (currentLineParts[0] != "xor")
+                        {
+                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
+                            cond = conditionToCond(condition);
+                        }
+                        string s = "0";
+                        string opx = "101";
+                        string prefix = opcode + cond + s + opx;
+
                         string RegD = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
                         string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
@@ -93,9 +209,19 @@ namespace assembler
                         memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
-                    if (currentLineParts[0] == "cmp")
+                    if (currentLineParts[0].Contains("cmp"))
                     {
-                        string prefix = "0010000000000000";
+                        string opcode = "0010";
+                        string cond = "0000";
+                        if (currentLineParts[0] != "cmp")
+                        {
+                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
+                            cond = conditionToCond(condition);
+                        }
+                        string s = "1";
+                        string opx = "000";
+                        string prefix = opcode + cond + s + opx + "0000";
+
                         string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
 
@@ -103,9 +229,19 @@ namespace assembler
                         memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
-                    if (currentLineParts[0] == "jr")
+                    if (currentLineParts[0].Contains("jr"))
                     {
-                        string prefix = "0001000000000000";
+                        string opcode = "0001";
+                        string cond = "0000";
+                        if (currentLineParts[0] != "or")
+                        {
+                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
+                            cond = conditionToCond(condition);
+                        }
+                        string s = "0";
+                        string opx = "000";
+                        string prefix = opcode + cond + s + opx + "0000";
+
                         string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
 
                         string instruction = Convert.ToString(Convert.ToInt32(prefix + RegS + "0000", 2), 16).PadLeft(6, '0');
@@ -124,22 +260,50 @@ namespace assembler
 
 
 
-                if(currentLineParts[0] == "addi" || currentLineParts[0] == "lw" || currentLineParts[0] == "sw") // D-type
+                if(currentLineParts[0].Contains("addi") || currentLineParts[0].Contains("lw") || currentLineParts[0].Contains("sw")) // D-type
                 {
-                    if (currentLineParts[0] == "addi")
+                    if (currentLineParts[0].Contains("addi"))
                     {
-                        string prefix = "011000000";
+                        string opcode = "0110";
+                        string cond = "0000";
+                        if (currentLineParts[0] != "addi")
+                        {
+                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
+                            cond = conditionToCond(condition);
+                        }
+                        string s = "0";
+                        string prefix = opcode + cond + s;
+
                         string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                        string Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("#", ""), 10), 2).PadLeft(7, '0');
+                        string Immediate; 
+
+                        if (Convert.ToInt32(currentLineParts[3]) >= 0)
+                        {
+                            Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("#", ""), 10), 2).PadLeft(7, '0');
+                            Immediate = Immediate.Substring(Immediate.Length - 7);
+                        } else
+                        {
+                            Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("#", ""), 10), 2).PadLeft(7, '1');
+                            Immediate = Immediate.Substring(Immediate.Length - 7);
+                        }
 
                         string instruction = Convert.ToString(Convert.ToInt32(prefix + Immediate + RegS + RegT, 2), 16).PadLeft(6, '0');
                         memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
-                    if (currentLineParts[0] == "lw")
+                    if (currentLineParts[0].Contains("lw"))
                     {
-                        string prefix = "010000000";
+                        string opcode = "0100";
+                        string cond = "0000";
+                        if (currentLineParts[0] != "lw")
+                        {
+                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
+                            cond = conditionToCond(condition);
+                        }
+                        string s = "0";
+                        string prefix = opcode + cond + s;
+
                         string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Split('(', ')')[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
                         string Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[2].Split('(')[0], 10), 2).PadLeft(7, '0');
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
@@ -148,9 +312,18 @@ namespace assembler
                         memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
-                    if (currentLineParts[0] == "sw")
+                    if (currentLineParts[0].Contains("sw"))
                     {
-                        string prefix = "010100000";
+                        string opcode = "0101";
+                        string cond = "0000";
+                        if (currentLineParts[0] != "sw")
+                        {
+                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
+                            cond = conditionToCond(condition);
+                        }
+                        string s = "0";
+                        string prefix = opcode + cond + s;
+
                         string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Split('(', ')')[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
                         string Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[2].Split('(')[0], 10), 2).PadLeft(7, '0');
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
@@ -175,21 +348,49 @@ namespace assembler
 
 
 
-                if (currentLineParts[0] == "b" || currentLineParts[0] == "bal") // B-type
+                if (currentLineParts[0].Contains("b")) // B-type
                 {
 
-                    if (currentLineParts[0] == "b")
+                    if (currentLineParts[0].Contains("b") && !currentLineParts[0].Contains("bal"))
                     {
-                        string prefix = "10000000";
-                        string label = Convert.ToString(Convert.ToInt32(currentLineParts[1], 10), 2).PadLeft(16, '0');
+                        string opcode = "1000";
+                        string cond = "0000";
+                        if (currentLineParts[0] != "b")
+                        {
+                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
+                            cond = conditionToCond(condition);
+                        }
+                        string prefix = opcode + cond;
+
+                        string label;
+
+                        if (Convert.ToInt32(currentLineParts[1]) >= 0)
+                        {
+                            label = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("#", ""), 10), 2).PadLeft(16, '0');
+                            label = label.Substring(label.Length - 7);
+                        }
+                        else
+                        {
+                            label = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("#", ""), 10), 2).PadLeft(16, '1');
+                            label = label.Substring(label.Length - 16);
+                        }
+
 
                         string instruction = Convert.ToString(Convert.ToInt32(prefix + label, 2), 16).PadLeft(6, '0');
                         memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
-                    if (currentLineParts[0] == "bal")
+                    if (currentLineParts[0].Contains("bal"))
                     {
-                        string prefix = "10010000";
+                        string opcode = "1001";
+                        string cond = "0000";
+                        if (currentLineParts[0] != "b")
+                        {
+                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
+                            cond = conditionToCond(condition);
+                        }
+                        string prefix = opcode + cond;
+
                         string label = Convert.ToString(Convert.ToInt32(currentLineParts[1], 10), 2).PadLeft(16, '0');
 
                         string instruction = Convert.ToString(Convert.ToInt32(prefix + label, 2), 16).PadLeft(6, '0');
