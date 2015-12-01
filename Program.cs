@@ -14,6 +14,11 @@ namespace assembler
 
             List<string> memoryOutput = new List<string>();
 
+            memoryOutput.Add("WIDTH=24;");
+            memoryOutput.Add("DEPTH=1024;");
+            memoryOutput.Add("ADDRESS_RADIX=UNS;");
+            memoryOutput.Add("DATA_RADIX=HEX;");
+            memoryOutput.Add("CONTENT BEGIN");
             memoryOutput.Add("0 : 000000;");
 
             foreach (string line in File.ReadLines("code.s"))
@@ -27,7 +32,7 @@ namespace assembler
 
                 if(currentLineParts[0] == "noop")
                 {
-                    memoryOutput.Add(memoryOutput.Count + " : 000000; % " + line + " %");
+                    memoryOutput.Add(memoryOutput.Count - 5 + " : 000000; % " + line + " %");
                 }
 
                 if(currentLineParts[0] == "add" || currentLineParts[0] == "sub" || currentLineParts[0] == "and" || currentLineParts[0] == "or" || currentLineParts[0] == "xor" || currentLineParts[0] == "cmp" || currentLineParts[0] == "jr") // R-type
@@ -41,7 +46,7 @@ namespace assembler
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
 
                         string instruction = Convert.ToString(Convert.ToInt32(prefix + RegD + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
                     if (currentLineParts[0] == "sub")
@@ -52,7 +57,7 @@ namespace assembler
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
 
                         string instruction = Convert.ToString(Convert.ToInt32(prefix + RegD + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
                     if (currentLineParts[0] == "and")
@@ -63,7 +68,7 @@ namespace assembler
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
 
                         string instruction = Convert.ToString(Convert.ToInt32(prefix + RegD + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
                     if (currentLineParts[0] == "or")
@@ -74,7 +79,7 @@ namespace assembler
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
 
                         string instruction = Convert.ToString(Convert.ToInt32(prefix + RegD + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
                     if (currentLineParts[0] == "xor")
@@ -85,7 +90,7 @@ namespace assembler
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
 
                         string instruction = Convert.ToString(Convert.ToInt32(prefix + RegD + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
                     if (currentLineParts[0] == "cmp")
@@ -95,7 +100,7 @@ namespace assembler
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
 
                         string instruction = Convert.ToString(Convert.ToInt32(prefix + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
                     if (currentLineParts[0] == "jr")
@@ -104,7 +109,7 @@ namespace assembler
                         string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
 
                         string instruction = Convert.ToString(Convert.ToInt32(prefix + RegS + "0000", 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
 
@@ -129,7 +134,7 @@ namespace assembler
                         string Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("#", ""), 10), 2).PadLeft(7, '0');
 
                         string instruction = Convert.ToString(Convert.ToInt32(prefix + Immediate + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
                     if (currentLineParts[0] == "lw")
@@ -140,7 +145,7 @@ namespace assembler
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
 
                         string instruction = Convert.ToString(Convert.ToInt32(prefix + Immediate + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
                     if (currentLineParts[0] == "sw")
@@ -151,7 +156,7 @@ namespace assembler
                         string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
 
                         string instruction = Convert.ToString(Convert.ToInt32(prefix + Immediate + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
                 }
@@ -179,7 +184,7 @@ namespace assembler
                         string label = Convert.ToString(Convert.ToInt32(currentLineParts[1], 10), 2).PadLeft(16, '0');
 
                         string instruction = Convert.ToString(Convert.ToInt32(prefix + label, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
                     if (currentLineParts[0] == "bal")
@@ -188,7 +193,7 @@ namespace assembler
                         string label = Convert.ToString(Convert.ToInt32(currentLineParts[1], 10), 2).PadLeft(16, '0');
 
                         string instruction = Convert.ToString(Convert.ToInt32(prefix + label, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count + " : " + instruction + "; % " + line + " %");
+                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
                     }
 
                 }
@@ -196,6 +201,8 @@ namespace assembler
                 //Console.WriteLine(currentLine);
             }
 
+
+            memoryOutput.Add("END;");
 
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"..\..\output.mif"))
             {

@@ -50,6 +50,9 @@
     <None Include="output.mif" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="code - Copy.s">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="code.s">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
