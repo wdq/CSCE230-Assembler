@@ -12,7 +12,11 @@ namespace assembler
 
         static string conditionToCond(string condition)
         {
-            if(condition == "nv")
+            if(condition == "al")
+            {
+                return "0000";
+            }
+            else if(condition == "nv")
             {
                 return "0001";
             } else if(condition == "eq")
@@ -72,13 +76,100 @@ namespace assembler
                 return "1111";
             }
 
-            return "0000";
+            return "NoCond";
+        }
+
+        static void convertOpCodeCondSX(string instructionPart, ref string OpCode, ref string Cond, ref string OpX, ref string S)
+        {
+            Cond = conditionToCond(instructionPart.Substring(instructionPart.Length - 2));
+
+            if(Cond == "NoCond")
+            {
+                Cond = "0000";
+            } else
+            {
+                instructionPart = instructionPart.Remove(instructionPart.Length - 2);
+            }
+
+            if(instructionPart == "add")
+            {
+                OpCode = "0000";
+                OpX = "100";
+                S = "0";
+            }
+            else if(instructionPart == "sub")
+            {
+                OpCode = "0000";
+                OpX = "011";
+                S = "0";
+            }
+            else if (instructionPart == "and")
+            {
+                OpCode = "0000";
+                OpX = "111";
+                S = "0";
+            }
+            else if (instructionPart == "or")
+            {
+                OpCode = "0000";
+                OpX = "110";
+                S = "0";
+            }
+            else if (instructionPart == "xor")
+            {
+                OpCode = "0000";
+                OpX = "101";
+                S = "0";
+            }
+            else if (instructionPart == "cmp")
+            {
+                OpCode = "0010";
+                OpX = "000";
+                S = "1";
+            }
+            else if (instructionPart == "jr")
+            {
+                OpCode = "0001";
+                OpX = "000";
+                S = "0";
+            }
+            else if (instructionPart == "lw")
+            {
+                OpCode = "0100";
+                OpX = "NoOpX";
+                S = "0";
+            }
+            else if (instructionPart == "sw")
+            {
+                OpCode = "0101";
+                OpX = "NoOpX";
+                S = "0";
+            }
+            else if (instructionPart == "addi")
+            {
+                OpCode = "0110";
+                OpX = "NoOpX";
+                S = "0";
+            }
+            else if (instructionPart == "b")
+            {
+                OpCode = "1000";
+                OpX = "NoOpX";
+                S = "NoS";
+            }
+            else if (instructionPart == "bal")
+            {
+                OpCode = "1001";
+                OpX = "NoOpX";
+                S = "NoS";
+            }
         }
 
         static void Main(string[] args)
         {
 
             List<string> memoryOutput = new List<string>();
+            List<string> labels = new List<string>();
 
             memoryOutput.Add("WIDTH=24;");
             memoryOutput.Add("DEPTH=1024;");
@@ -95,10 +186,38 @@ namespace assembler
 
                 string[] currentLineParts = currentLine.Split(' ');
 
+                if(currentLineParts[0].Substring(0, 3) == "add" || currentLineParts[0].Substring(0, 3) == "sub" || currentLineParts[0].Substring(0, 3) == "and" || currentLineParts[0].Substring(0, 2) == "or" || currentLineParts[0].Substring(0, 3) == "xor" || currentLineParts[0].Substring(0, 3) == "cmp" || currentLineParts[0].Substring(0, 2) == "jr")
+                {
+                    RType instruction = new RType();
+                    string OpCode = "";
+                    string Cond = "";
+                    string OpX = "";
+                    string S = "";
 
-                if(currentLineParts[0].Contains("noop"))
+                    convertOpCodeCondSX(currentLineParts[0], ref OpCode, ref Cond, ref OpX, ref S);
+
+                    instruction.Cond = Cond;
+                    instruction.OpCode = OpCode;
+                    instruction.Opx = OpX;
+                    instruction.S = S;
+                    instruction.RegD = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                    instruction.RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                    instruction.RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                    Console.WriteLine("TEST");
+                }
+
+
+
+                /*if(currentLineParts[0].Contains("noop"))
                 {
                     memoryOutput.Add(memoryOutput.Count - 5 + " : 000000; % " + line + " %");
+                }
+
+
+                if(currentLineParts[0].Contains(":"))
+                {
+                    string label = currentLineParts[0].Replace(":", "");
+                    labels.Add(label);
                 }
 
                 if((currentLineParts[0].Contains("add") && !currentLineParts[0].Contains("addi")) || currentLineParts[0].Contains("sub") || currentLineParts[0] == "and" || currentLineParts[0].Contains("or") || currentLineParts[0].Contains("xor") || currentLineParts[0].Contains("cmp") || currentLineParts[0].Contains("jr")) // R-type
@@ -411,8 +530,9 @@ namespace assembler
                 {
                     file.WriteLine(line);
 
-                }
+                } */
             }
+            
 
             Console.WriteLine("Done");
 
