@@ -81,7 +81,11 @@ namespace assembler
 
         static void convertOpCodeCondSX(string instructionPart, ref string OpCode, ref string Cond, ref string OpX, ref string S)
         {
-            Cond = conditionToCond(instructionPart.Substring(instructionPart.Length - 2));
+            Cond = "NoCond";
+            if (instructionPart.Length > 2)
+            {
+                Cond = conditionToCond(instructionPart.Substring(instructionPart.Length - 2));
+            }
 
             if(Cond == "NoCond")
             {
@@ -198,9 +202,56 @@ namespace assembler
                     Array.Copy(currentLineParts, 1, currentLineParts, 0, currentLineParts.Length - 1);
                 }
 
-                if((currentLineParts[0].Substring(0, 3) == "add" && currentLineParts[0].Substring(0, 4) != "addi") || currentLineParts[0].Substring(0, 3) == "sub" || currentLineParts[0].Substring(0, 3) == "and" || currentLineParts[0].Substring(0, 2) == "or" || currentLineParts[0].Substring(0, 3) == "xor" || currentLineParts[0].Substring(0, 3) == "cmp" || currentLineParts[0].Substring(0, 2) == "jr")
+                bool RType = false;
+                bool DType = false;
+                bool BType = false;
+
+                if(currentLineParts[0].Length == 3 || currentLineParts[0].Length == 5)
+                {
+                    if(currentLineParts[0].Substring(0, 3) == "add" || currentLineParts[0].Substring(0, 3) == "sub" || currentLineParts[0].Substring(0, 3) == "and" || currentLineParts[0].Substring(0, 3) == "xor" || currentLineParts[0].Substring(0, 3) == "cmp")
+                    {
+                        RType = true;
+
+                    }
+                    if (currentLineParts[0].Substring(0, 3) == "bal")
+                    {
+                        BType = true;
+                    }
+                }
+
+                if(currentLineParts[0].Length == 2 || currentLineParts[0].Length == 4)
+                {
+                    if(currentLineParts[0].Substring(0, 2) == "or" || currentLineParts[0].Substring(0, 2) == "jr")
+                    {
+                        RType = true;
+                    }
+                    if(currentLineParts[0].Substring(0, 2) == "lw" || currentLineParts[0].Substring(0, 2) == "sw")
+                    {
+                        DType = true;
+
+                    }
+                }
+
+                if(currentLineParts[0].Length == 4 || currentLineParts[0].Length == 6)
+                {
+                    if(currentLineParts[0].Substring(0, 4) == "addi")
+                    {
+                        DType = true;
+                    }
+                }
+
+                if(currentLineParts[0].Length == 1 || currentLineParts[0].Length == 3)
+                {
+                    if(currentLineParts[0].Substring(0, 1) == "b")
+                    {
+                        BType = true;
+                    }
+                }
+
+                if(RType)
                 {
                     Instruction instruction = new Instruction();  // R-Type
+                    instruction.Line = line;
                     string OpCode = "";
                     string Cond = "";
                     string OpX = "";
@@ -212,9 +263,23 @@ namespace assembler
                     instruction.OpCode = OpCode;
                     instruction.Opx = OpX;
                     instruction.S = S;
-                    instruction.RegD = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                    instruction.RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                    instruction.RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                    if (instruction.OpCode == "0010" && instruction.Opx == "000") // cmp
+                    {
+                        instruction.RegD = "0000";
+                        instruction.RegS = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                        instruction.RegT = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                    } else if(instruction.OpCode == "0001" && instruction.Opx == "000") // jr
+                    {
+                        instruction.RegD = "0000";
+                        instruction.RegS = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                        instruction.RegT = "0000";
+                    } else
+                    {
+                        instruction.RegD = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                        instruction.RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                        instruction.RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                    }
+
                     instruction.Address = addressCounter;
                     instruction.Type = "R";
 
@@ -223,9 +288,10 @@ namespace assembler
                     Instructions.Add(instruction);
                 }
 
-                if(currentLineParts[0].Substring(0, 2) == "lw" || currentLineParts[0].Substring(0, 2) == "sw" || currentLineParts[0].Substring(0, 4) == "addi")
+                if(DType)
                 {
                     Instruction instruction = new Instruction(); // D-Type
+                    instruction.Line = line;
                     string OpCode = "";
                     string Cond = "";
                     string OpX = ""; // not used
@@ -236,21 +302,29 @@ namespace assembler
                     instruction.Cond = Cond;
                     instruction.OpCode = OpCode;
                     instruction.S = S;
-                    string Immediate;
+                    string Immediate = "0000000";
 
-                    if (Convert.ToInt32(currentLineParts[3]) >= 0)
+                    if (instruction.OpCode == "0100" || instruction.OpCode == "0101") // lw + sw
                     {
-                        Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("#", ""), 10), 2).PadLeft(7, '0');
-                        Immediate = Immediate.Substring(Immediate.Length - 7);
+                        instruction.RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Split('(', ')')[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                        Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[2].Split('(')[0], 10), 2).PadLeft(7, '0');
                     }
                     else
                     {
-                        Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("#", ""), 10), 2).PadLeft(7, '1');
-                        Immediate = Immediate.Substring(Immediate.Length - 7);
+                        if (Convert.ToInt32(currentLineParts[3]) >= 0)
+                        {
+                            Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("#", ""), 10), 2).PadLeft(7, '0');
+                            Immediate = Immediate.Substring(Immediate.Length - 7);
+                        }
+                        else
+                        {
+                            Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("#", ""), 10), 2).PadLeft(7, '1');
+                            Immediate = Immediate.Substring(Immediate.Length - 7);
+                        }
+                        instruction.RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
                     }
                     instruction.Immediate = Immediate;
-                    instruction.RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                    instruction.RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                    instruction.RegT = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
                     instruction.Address = addressCounter;
                     instruction.Type = "D";
 
@@ -259,13 +333,16 @@ namespace assembler
                     Instructions.Add(instruction);
                 }
 
-                if(currentLineParts[0].Substring(0, 1) == "b" || currentLineParts[0].Substring(0, 3) == "bal")
+                if(BType)
                 {
                     Instruction instruction = new Instruction(); // B-Type
+                    instruction.Line = line;
                     string OpCode = "";
                     string Cond = "";
                     string OpX = "";
                     string S = "";
+                    instruction.Complete = false;
+
 
                     convertOpCodeCondSX(currentLineParts[0], ref OpCode, ref Cond, ref OpX, ref S);
 
@@ -275,8 +352,25 @@ namespace assembler
                     instruction.Address = addressCounter;
                     instruction.Type = "B";
 
+                    int intlabel;
+                    if(int.TryParse(instruction.TextLabel, out intlabel))
+                    {
+                        string label;
+                        if (Convert.ToInt32(currentLineParts[1]) >= 0)
+                        {
+                            label = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("#", ""), 10), 2).PadLeft(16, '0');
+                            label = label.Substring(label.Length - 7);
+                        }
+                        else
+                        {
+                            label = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("#", ""), 10), 2).PadLeft(16, '1');
+                            label = label.Substring(label.Length - 16);
+                        }
+                        instruction.Label = label;
+                        instruction.Complete = true;
+                    }
+
                     addressCounter++;
-                    instruction.Complete = false;
                     Instructions.Add(instruction);
                 }
 
@@ -289,11 +383,51 @@ namespace assembler
                 if (!currentInstruction.Complete)
                 {
                     Label label = labels.Find(x => x.Value == currentInstruction.TextLabel);
-                    currentInstruction.Label = Convert.ToString(Convert.ToInt32(label.Address.ToString(), 10), 2).PadLeft(16, '0');
+                    int difference = label.Address - currentInstruction.Address - 1;
+                    if (difference >= 0)
+                    {
+                        currentInstruction.Label = Convert.ToString(Convert.ToInt32(difference.ToString(), 10), 2).PadLeft(16, '0');
+                        currentInstruction.Label = currentInstruction.Label.Substring(currentInstruction.Label.Length - 16);
+                    } else
+                    {
+                        currentInstruction.Label = Convert.ToString(Convert.ToInt32(difference.ToString(), 10), 2).PadLeft(16, '1');
+                        currentInstruction.Label = currentInstruction.Label.Substring(currentInstruction.Label.Length - 16);
+                    }
+
+                    currentInstruction.Complete = true;
                 }
             }
 
-            Console.WriteLine("Done");
+            foreach(Instruction currentInstruction in Instructions)
+            {
+                string binaryInstruction = "0";
+                if(currentInstruction.Type == "R")
+                {
+                    binaryInstruction = currentInstruction.OpCode + currentInstruction.Cond + currentInstruction.S + currentInstruction.Opx + currentInstruction.RegD + currentInstruction.RegS + currentInstruction.RegT;
+                } else if(currentInstruction.Type == "D")
+                {
+                    binaryInstruction = currentInstruction.OpCode + currentInstruction.Cond + currentInstruction.S + currentInstruction.Immediate + currentInstruction.RegS + currentInstruction.RegT;
+                } else if (currentInstruction.Type == "B")
+                {
+                    binaryInstruction = currentInstruction.OpCode + currentInstruction.Cond + currentInstruction.Label;
+                }
+                string hexInstruction = Convert.ToString(Convert.ToInt32(binaryInstruction, 2), 16).PadLeft(6, '0');
+                memoryOutput.Add(currentInstruction.Address + " : " + hexInstruction + ";    % " + currentInstruction.Line + " %");
+            }
+
+            memoryOutput.Add("END;");
+
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"..\..\output.mif"))
+            {
+                foreach (var line in memoryOutput)
+                {
+                    file.WriteLine(line);
+
+                }
+            }
+                
+
+               Console.WriteLine("Done");
 
             Console.ReadKey();
 

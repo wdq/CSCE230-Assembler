@@ -23,6 +23,7 @@ namespace assembler
         public string RegT { get; set; }
 
         public string Immediate { get; set; }
+        public string Line { get; set; }
 
 
 

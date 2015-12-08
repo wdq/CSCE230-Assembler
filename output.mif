@@ -4,15 +4,18 @@ ADDRESS_RADIX=UNS;
 DATA_RADIX=HEX;
 CONTENT BEGIN
 0 : 000000;
-1 : 004123; % add r1, r2, r3 %
-2 : 0a4123; % addhi r1, r2, r3 // test %
-3 : 600521; % addi r1, r2, 5 %
-4 : 607b21; % addi r1, r2, -5 %
-5 : 6e0521; % addige r1, r2, 5 %
-6 : 6e7b21; % addige r1, r2, -5 %
-7 : 004005; % b 5 %
-8 : 900005; % bal 5 %
-9 : 004105; % beq 5 %
-10 : 920005; % baleq 5 %
-11 : 80fffb; % b -5 %
+1 : 401402;    % lw r2, 20(r0) // load the pushbuttons %
+2 : 401503;    % lw r3, 21(r0) // load the green LEDs %
+3 : 600405;    % addi r5, r0, 4 // will be used in bitmasking %
+4 : 600c06;    % addi r6, r0, 12 // something to displaly if pushed %
+5 : 400024;    % LOOP: lw r4, 0(r2) // load the status of pushbuttons %
+6 : 500035;    % sw r5, 0(r3) // something to display if not pushed %
+7 : 208054;    % cmp r5, r4 // want to know if 3 is pushed %
+8 : 820001;    % beq LEDS %
+9 : 80fffb;    % b LOOP %
+10 : 500036;    % LEDS: sw r6, 0(r3) %
+11 : 400024;    % lw r4, 0(r2) // load the status of the push buttons %
+12 : 208054;    % cmp r5, r4 // want to know if button 3 is pushed %
+13 : 82fffc;    % beq LEDS %
+14 : 80fff6;    % b LOOP %
 END;

@@ -57,6 +57,9 @@
     <None Include="output.mif" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="code - Copy %282%29.s">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="code - Copy.s">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
