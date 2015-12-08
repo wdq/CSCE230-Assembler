@@ -10,5 +10,6 @@ namespace assembler
     {
         public string Cond { get; set; }
         public string Label { get; set; }
+        public string TextLabel { get; set; }
     }
 }

@@ -169,7 +169,9 @@ namespace assembler
         {
 
             List<string> memoryOutput = new List<string>();
-            List<string> labels = new List<string>();
+            List<Label> labels = new List<Label>();
+            int addressCounter = 1;
+            List<Instruction> Instructions = new List<Instruction>();
 
             memoryOutput.Add("WIDTH=24;");
             memoryOutput.Add("DEPTH=1024;");
@@ -186,9 +188,19 @@ namespace assembler
 
                 string[] currentLineParts = currentLine.Split(' ');
 
-                if(currentLineParts[0].Substring(0, 3) == "add" || currentLineParts[0].Substring(0, 3) == "sub" || currentLineParts[0].Substring(0, 3) == "and" || currentLineParts[0].Substring(0, 2) == "or" || currentLineParts[0].Substring(0, 3) == "xor" || currentLineParts[0].Substring(0, 3) == "cmp" || currentLineParts[0].Substring(0, 2) == "jr")
+
+                if(currentLineParts[0].Contains(":"))
                 {
-                    RType instruction = new RType();
+                    Label label = new Label();
+                    label.Value = currentLineParts[0].Substring(0, currentLineParts[0].IndexOf(":"));
+                    label.Address = addressCounter; // might need some logic here based on if the label is supposed to be before or after the current address
+                    labels.Add(label);
+                    Array.Copy(currentLineParts, 1, currentLineParts, 0, currentLineParts.Length - 1);
+                }
+
+                if((currentLineParts[0].Substring(0, 3) == "add" && currentLineParts[0].Substring(0, 4) != "addi") || currentLineParts[0].Substring(0, 3) == "sub" || currentLineParts[0].Substring(0, 3) == "and" || currentLineParts[0].Substring(0, 2) == "or" || currentLineParts[0].Substring(0, 3) == "xor" || currentLineParts[0].Substring(0, 3) == "cmp" || currentLineParts[0].Substring(0, 2) == "jr")
+                {
+                    Instruction instruction = new Instruction();  // R-Type
                     string OpCode = "";
                     string Cond = "";
                     string OpX = "";
@@ -203,336 +215,83 @@ namespace assembler
                     instruction.RegD = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
                     instruction.RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
                     instruction.RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                    Console.WriteLine("TEST");
+                    instruction.Address = addressCounter;
+                    instruction.Type = "R";
+
+                    addressCounter++;
+                    instruction.Complete = true;
+                    Instructions.Add(instruction);
                 }
 
-
-
-                /*if(currentLineParts[0].Contains("noop"))
+                if(currentLineParts[0].Substring(0, 2) == "lw" || currentLineParts[0].Substring(0, 2) == "sw" || currentLineParts[0].Substring(0, 4) == "addi")
                 {
-                    memoryOutput.Add(memoryOutput.Count - 5 + " : 000000; % " + line + " %");
+                    Instruction instruction = new Instruction(); // D-Type
+                    string OpCode = "";
+                    string Cond = "";
+                    string OpX = ""; // not used
+                    string S = "";
+
+                    convertOpCodeCondSX(currentLineParts[0], ref OpCode, ref Cond, ref OpX, ref S);
+
+                    instruction.Cond = Cond;
+                    instruction.OpCode = OpCode;
+                    instruction.S = S;
+                    string Immediate;
+
+                    if (Convert.ToInt32(currentLineParts[3]) >= 0)
+                    {
+                        Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("#", ""), 10), 2).PadLeft(7, '0');
+                        Immediate = Immediate.Substring(Immediate.Length - 7);
+                    }
+                    else
+                    {
+                        Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("#", ""), 10), 2).PadLeft(7, '1');
+                        Immediate = Immediate.Substring(Immediate.Length - 7);
+                    }
+                    instruction.Immediate = Immediate;
+                    instruction.RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                    instruction.RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
+                    instruction.Address = addressCounter;
+                    instruction.Type = "D";
+
+                    addressCounter++;
+                    instruction.Complete = true;
+                    Instructions.Add(instruction);
                 }
 
-
-                if(currentLineParts[0].Contains(":"))
+                if(currentLineParts[0].Substring(0, 1) == "b" || currentLineParts[0].Substring(0, 3) == "bal")
                 {
-                    string label = currentLineParts[0].Replace(":", "");
-                    labels.Add(label);
-                }
+                    Instruction instruction = new Instruction(); // B-Type
+                    string OpCode = "";
+                    string Cond = "";
+                    string OpX = "";
+                    string S = "";
 
-                if((currentLineParts[0].Contains("add") && !currentLineParts[0].Contains("addi")) || currentLineParts[0].Contains("sub") || currentLineParts[0] == "and" || currentLineParts[0].Contains("or") || currentLineParts[0].Contains("xor") || currentLineParts[0].Contains("cmp") || currentLineParts[0].Contains("jr")) // R-type
-                {
+                    convertOpCodeCondSX(currentLineParts[0], ref OpCode, ref Cond, ref OpX, ref S);
 
-                    if(currentLineParts[0].Contains("add"))
-                    {
-                        string opcode = "0000";
-                        string cond = "0000";
-                        if(currentLineParts[0] != "add")
-                        {
-                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
-                            cond = conditionToCond(condition);
-                        }
-                        string s = "0";
-                        string opx = "100";
-                        string prefix = opcode + cond + s + opx;
+                    instruction.Cond = Cond;
+                    instruction.OpCode = OpCode;
+                    instruction.TextLabel = currentLineParts[1];
+                    instruction.Address = addressCounter;
+                    instruction.Type = "B";
 
-                        string RegD = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                        string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                        string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
-
-                        string instruction = Convert.ToString(Convert.ToInt32(prefix + RegD + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
-                    }
-
-                    if (currentLineParts[0].Contains("sub"))
-                    {
-                        string opcode = "0000";
-                        string cond = "0000";
-                        if (currentLineParts[0] != "sub")
-                        {
-                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
-                            cond = conditionToCond(condition);
-                        }
-                        string s = "0";
-                        string opx = "011";
-                        string prefix = opcode + cond + s + opx;
-
-                        string RegD = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                        string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                        string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
-
-                        string instruction = Convert.ToString(Convert.ToInt32(prefix + RegD + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
-                    }
-
-                    if (currentLineParts[0].Contains("and"))
-                    {
-                        string opcode = "0000";
-                        string cond = "0000";
-                        if (currentLineParts[0] != "and")
-                        {
-                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
-                            cond = conditionToCond(condition);
-                        }
-                        string s = "0";
-                        string opx = "111";
-                        string prefix = opcode + cond + s + opx;
-
-                        string RegD = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                        string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                        string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
-
-                        string instruction = Convert.ToString(Convert.ToInt32(prefix + RegD + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
-                    }
-
-                    if (currentLineParts[0].Contains("or"))
-                    {
-                        string opcode = "0000";
-                        string cond = "0000";
-                        if (currentLineParts[0] != "or")
-                        {
-                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
-                            cond = conditionToCond(condition);
-                        }
-                        string s = "0";
-                        string opx = "110";
-                        string prefix = opcode + cond + s + opx;
-
-                        string RegD = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                        string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                        string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
-
-                        string instruction = Convert.ToString(Convert.ToInt32(prefix + RegD + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
-                    }
-
-                    if (currentLineParts[0].Contains("xor"))
-                    {
-                        string opcode = "0000";
-                        string cond = "0000";
-                        if (currentLineParts[0] != "xor")
-                        {
-                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
-                            cond = conditionToCond(condition);
-                        }
-                        string s = "0";
-                        string opx = "101";
-                        string prefix = opcode + cond + s + opx;
-
-                        string RegD = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                        string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                        string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("r", ""), 10), 2).PadLeft(4, '0');
-
-                        string instruction = Convert.ToString(Convert.ToInt32(prefix + RegD + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
-                    }
-
-                    if (currentLineParts[0].Contains("cmp"))
-                    {
-                        string opcode = "0010";
-                        string cond = "0000";
-                        if (currentLineParts[0] != "cmp")
-                        {
-                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
-                            cond = conditionToCond(condition);
-                        }
-                        string s = "1";
-                        string opx = "000";
-                        string prefix = opcode + cond + s + opx + "0000";
-
-                        string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                        string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
-
-                        string instruction = Convert.ToString(Convert.ToInt32(prefix + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
-                    }
-
-                    if (currentLineParts[0].Contains("jr"))
-                    {
-                        string opcode = "0001";
-                        string cond = "0000";
-                        if (currentLineParts[0] != "or")
-                        {
-                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
-                            cond = conditionToCond(condition);
-                        }
-                        string s = "0";
-                        string opx = "000";
-                        string prefix = opcode + cond + s + opx + "0000";
-
-                        string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
-
-                        string instruction = Convert.ToString(Convert.ToInt32(prefix + RegS + "0000", 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
-                    }
-
-
+                    addressCounter++;
+                    instruction.Complete = false;
+                    Instructions.Add(instruction);
                 }
 
 
-
-
-
-
-
-
-
-
-                if(currentLineParts[0].Contains("addi") || currentLineParts[0].Contains("lw") || currentLineParts[0].Contains("sw")) // D-type
-                {
-                    if (currentLineParts[0].Contains("addi"))
-                    {
-                        string opcode = "0110";
-                        string cond = "0000";
-                        if (currentLineParts[0] != "addi")
-                        {
-                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
-                            cond = conditionToCond(condition);
-                        }
-                        string s = "0";
-                        string prefix = opcode + cond + s;
-
-                        string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                        string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                        string Immediate; 
-
-                        if (Convert.ToInt32(currentLineParts[3]) >= 0)
-                        {
-                            Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("#", ""), 10), 2).PadLeft(7, '0');
-                            Immediate = Immediate.Substring(Immediate.Length - 7);
-                        } else
-                        {
-                            Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[3].Replace("#", ""), 10), 2).PadLeft(7, '1');
-                            Immediate = Immediate.Substring(Immediate.Length - 7);
-                        }
-
-                        string instruction = Convert.ToString(Convert.ToInt32(prefix + Immediate + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
-                    }
-
-                    if (currentLineParts[0].Contains("lw"))
-                    {
-                        string opcode = "0100";
-                        string cond = "0000";
-                        if (currentLineParts[0] != "lw")
-                        {
-                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
-                            cond = conditionToCond(condition);
-                        }
-                        string s = "0";
-                        string prefix = opcode + cond + s;
-
-                        string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Split('(', ')')[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                        string Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[2].Split('(')[0], 10), 2).PadLeft(7, '0');
-                        string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
-
-                        string instruction = Convert.ToString(Convert.ToInt32(prefix + Immediate + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
-                    }
-
-                    if (currentLineParts[0].Contains("sw"))
-                    {
-                        string opcode = "0101";
-                        string cond = "0000";
-                        if (currentLineParts[0] != "sw")
-                        {
-                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
-                            cond = conditionToCond(condition);
-                        }
-                        string s = "0";
-                        string prefix = opcode + cond + s;
-
-                        string RegS = Convert.ToString(Convert.ToInt32(currentLineParts[2].Split('(', ')')[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
-                        string Immediate = Convert.ToString(Convert.ToInt32(currentLineParts[2].Split('(')[0], 10), 2).PadLeft(7, '0');
-                        string RegT = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("r", ""), 10), 2).PadLeft(4, '0');
-
-                        string instruction = Convert.ToString(Convert.ToInt32(prefix + Immediate + RegS + RegT, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
-                    }
-
-                }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                if (currentLineParts[0].Contains("b")) // B-type
-                {
-
-                    if (currentLineParts[0].Contains("b") && !currentLineParts[0].Contains("bal"))
-                    {
-                        string opcode = "1000";
-                        string cond = "0000";
-                        if (currentLineParts[0] != "b")
-                        {
-                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
-                            cond = conditionToCond(condition);
-                        }
-                        string prefix = opcode + cond;
-
-                        string label;
-
-                        if (Convert.ToInt32(currentLineParts[1]) >= 0)
-                        {
-                            label = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("#", ""), 10), 2).PadLeft(16, '0');
-                            label = label.Substring(label.Length - 7);
-                        }
-                        else
-                        {
-                            label = Convert.ToString(Convert.ToInt32(currentLineParts[1].Replace("#", ""), 10), 2).PadLeft(16, '1');
-                            label = label.Substring(label.Length - 16);
-                        }
-
-
-                        string instruction = Convert.ToString(Convert.ToInt32(prefix + label, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
-                    }
-
-                    if (currentLineParts[0].Contains("bal"))
-                    {
-                        string opcode = "1001";
-                        string cond = "0000";
-                        if (currentLineParts[0] != "b")
-                        {
-                            string condition = currentLineParts[0].Substring(currentLineParts[0].Length - 2);
-                            cond = conditionToCond(condition);
-                        }
-                        string prefix = opcode + cond;
-
-                        string label = Convert.ToString(Convert.ToInt32(currentLineParts[1], 10), 2).PadLeft(16, '0');
-
-                        string instruction = Convert.ToString(Convert.ToInt32(prefix + label, 2), 16).PadLeft(6, '0');
-                        memoryOutput.Add(memoryOutput.Count - 5 + " : " + instruction + "; % " + line + " %");
-                    }
-
-                }
-
-                //Console.WriteLine(currentLine);
+           
             }
 
-
-            memoryOutput.Add("END;");
-
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"..\..\output.mif"))
+            foreach(Instruction currentInstruction in Instructions)
             {
-                foreach (var line in memoryOutput)
+                if (!currentInstruction.Complete)
                 {
-                    file.WriteLine(line);
-
-                } */
+                    Label label = labels.Find(x => x.Value == currentInstruction.TextLabel);
+                    currentInstruction.Label = Convert.ToString(Convert.ToInt32(label.Address.ToString(), 10), 2).PadLeft(16, '0');
+                }
             }
-            
 
             Console.WriteLine("Done");
 
