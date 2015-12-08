@@ -370,6 +370,25 @@ namespace assembler
                         instruction.Complete = true;
                     }
 
+                    if(!instruction.Complete)
+                    {
+                        Label labelSearch = labels.Find(x => x.Value == instruction.TextLabel);
+                        if(labelSearch != null)
+                        {
+                            int difference = labelSearch.Address - instruction.Address - 1;
+                            if(difference >= 0)
+                            {
+                                instruction.Label = Convert.ToString(Convert.ToInt32(difference.ToString(), 10), 2).PadLeft(16, '0');
+                                instruction.Label = instruction.Label.Substring(instruction.Label.Length - 16);
+                            } else
+                            {
+                                instruction.Label = Convert.ToString(Convert.ToInt32(difference.ToString(), 10), 2).PadLeft(16, '1');
+                                instruction.Label = instruction.Label.Substring(instruction.Label.Length - 16);
+                            }
+                            instruction.Complete = true;
+                        }
+                    }
+
                     addressCounter++;
                     Instructions.Add(instruction);
                 }
