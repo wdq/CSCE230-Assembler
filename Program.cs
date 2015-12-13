@@ -193,11 +193,34 @@ namespace assembler
                 string[] currentLineParts = currentLine.Split(' ');
 
 
+                if(currentLineParts[0].Length == 6 && currentLineParts[0] == "memset")
+                {
+                    Instruction instruction = new Instruction();
+                    instruction.Line = line;
+                    instruction.Type = "Constant";
+                    instruction.Address = Convert.ToInt32(currentLineParts[1]);
+                    if(currentLineParts[2].Contains("x")) // hex
+                    {
+                        string contentPart = currentLineParts[2].Substring(2);
+                        instruction.ConstantValue = contentPart.PadLeft(6, '0'); ;
+                    } else if(currentLineParts[2].Contains("b")) // binary
+                    {
+                        string contentPart = currentLineParts[2].Substring(2);
+                        instruction.ConstantValue = Convert.ToString(Convert.ToInt32(contentPart, 2), 16).PadLeft(6, '0');
+                    }
+                    else // decimal
+                    {
+                        instruction.ConstantValue = Convert.ToString(Convert.ToInt32(currentLineParts[2], 10), 16).PadLeft(6, '0');
+                    }
+                    instruction.Complete = true;
+                    Instructions.Add(instruction);
+                }
+
                 if(currentLineParts[0].Contains(":"))
                 {
                     Label label = new Label();
                     label.Value = currentLineParts[0].Substring(0, currentLineParts[0].IndexOf(":"));
-                    label.Address = addressCounter; // might need some logic here based on if the label is supposed to be before or after the current address
+                    label.Address = addressCounter;
                     labels.Add(label);
                     Array.Copy(currentLineParts, 1, currentLineParts, 0, currentLineParts.Length - 1);
                 }
@@ -430,8 +453,15 @@ namespace assembler
                 {
                     binaryInstruction = currentInstruction.OpCode + currentInstruction.Cond + currentInstruction.Label;
                 }
-                string hexInstruction = Convert.ToString(Convert.ToInt32(binaryInstruction, 2), 16).PadLeft(6, '0');
-                memoryOutput.Add(currentInstruction.Address + " : " + hexInstruction + ";    % " + currentInstruction.Line + " %");
+                if (currentInstruction.Type != "Constant")
+                {
+                    string hexInstruction = Convert.ToString(Convert.ToInt32(binaryInstruction, 2), 16).PadLeft(6, '0');
+                    memoryOutput.Add(currentInstruction.Address + " : " + hexInstruction + ";    % " + currentInstruction.Line + " %");
+                } else
+                {
+                    string hexInstruction = currentInstruction.ConstantValue;
+                    memoryOutput.Add(currentInstruction.Address + " : " + hexInstruction + ";    % " + currentInstruction.Line + " %");
+                }
             }
 
             memoryOutput.Add("END;");

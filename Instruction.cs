@@ -24,6 +24,7 @@ namespace assembler
 
         public string Immediate { get; set; }
         public string Line { get; set; }
+        public string ConstantValue { get; set; }
 
 
 

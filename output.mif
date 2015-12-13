@@ -4,18 +4,50 @@ ADDRESS_RADIX=UNS;
 DATA_RADIX=HEX;
 CONTENT BEGIN
 0 : 000000;
-1 : 401402;    % lw r2, 20(r0) // load the pushbuttons %
-2 : 401503;    % lw r3, 21(r0) // load the green LEDs %
-3 : 600405;    % addi r5, r0, 4 // will be used in bitmasking %
-4 : 600c06;    % addi r6, r0, 12 // something to displaly if pushed %
-5 : 400024;    % LOOP: lw r4, 0(r2) // load the status of pushbuttons %
-6 : 500035;    % sw r5, 0(r3) // something to display if not pushed %
-7 : 208054;    % cmp r5, r4 // want to know if 3 is pushed %
-8 : 820001;    % beq LEDS %
-9 : 80fffb;    % b LOOP %
-10 : 500036;    % LEDS: sw r6, 0(r3) %
-11 : 400024;    % lw r4, 0(r2) // load the status of the push buttons %
-12 : 208054;    % cmp r5, r4 // want to know if button 3 is pushed %
-13 : 82fffc;    % beq LEDS %
-14 : 80fff6;    % b LOOP %
+47 : 000040;    % memset 47, 0b1000000 %
+48 : 000079;    % memset 48, 0b1111001 %
+49 : 000024;    % memset 49, 0b0100100 %
+50 : 000030;    % memset 50, 0b0110000 %
+51 : 000019;    % memset 51, 0b0011001 %
+52 : 000012;    % memset 52, 0b0010010 %
+53 : 000002;    % memset 53, 0b0000010 %
+54 : 000078;    % memset 54, 0b1111000 %
+55 : 000000;    % memset 55, 0b0000000 %
+56 : 000010;    % memset 56, 0b0010000 %
+57 : 008000;    % memset 57, 0x008000 %
+58 : 004000;    % memset 58, 0x004000 %
+59 : 002000;    % memset 59, 0x002000 %
+60 : 001000;    % memset 60, 0x001000 %
+1 : 40390b;    % lw r11, 57(r0) // slider switch %
+2 : 403a0c;    % lw r12, 58(r0) // push button %
+3 : 403b0d;    % lw r13, 59(r0) // seven segment display %
+4 : 403c0e;    % lw r14, 60(r0) // green leds %
+5 : 4000b4;    % lw r4, 0(r11) // slider switch seed %
+6 : 602a44;    % addi r4, r4, 42 // default seed in case slider switch is zero %
+7 : 60040a;    % addi r10, r0, 4 // bits for button that needs to be pressed. %
+8 : 4000c3;    % LOOP: lw r3, 0(r12) // load the status of pushbuttons %
+9 : 2080a3;    % cmp r10, r3 // want to know if 3 is pushed %
+10 : 820001;    % beq RANDOM %
+11 : 80fffc;    % b LOOP %
+12 : 4000c3;    % RANDOM: lw r3, 0(r12) // load the status of pushbuttons %
+13 : 2080a3;    % cmp r10, r3 // want to know if 3 is pushed %
+14 : 820001;    % beq INCREMENT %
+15 : 800002;    % b DISPLAY %
+16 : 600122;    % INCREMENT: addi r2, r2, 1 %
+17 : 80fffa;    % b RANDOM %
+18 : 004124;    % DISPLAY: add r1, r2, r4 %
+19 : 006112;    % or r1, r1, r2 %
+20 : 005114;    % xor r1, r1, r4 %
+21 : 003112;    % sub r1, r1, r2 %
+22 : 007114;    % and r1, r1, r4 %
+23 : 600a08;    % addi r8, r0, 10 %
+24 : 600a07;    % addi r7, r0, 10 %
+25 : 208018;    % SUBTRACT: cmp r1, r8 %
+26 : 8d0002;    % blt WRITE %
+27 : 003117;    % sub r1, r1, r7 %
+28 : 80fffc;    % b SUBTRACT %
+29 : 402f17;    % WRITE: lw r7, 47(r1) %
+30 : 5000d7;    % sw r7, 0(r13) %
+31 : 5000e1;    % sw r1, 0(r14) %
+32 : 80ffe7;    % b LOOP %
 END;
